@@ -12,12 +12,15 @@
 # hand (never committed here) -- see the comment on each.
 #
 # IMPORTANT before going live (not needed for an initial test deploy):
-# - "plan: free" services spin down after 15 min of inactivity and take
+# - "plan: free" services (nornetorg-backend, nornetorg-redis,
+#   nornetorg-frontend) spin down after 15 min of inactivity and take
 #   10-30s to wake on the next request. That's fine for kicking the tires,
 #   but Stripe and Vipps both expect webhook responses within a few
 #   seconds and will mark deliveries failed (or retry oddly) against a
-#   cold-starting free instance. Bump nornetorg-backend and
-#   nornetorg-worker to at least "starter" before accepting real payments.
+#   cold-starting free instance. Bump nornetorg-backend to at least
+#   "starter" before accepting real payments (nornetorg-worker and
+#   nornetorg-commission-draw are already on "starter" -- Render has no
+#   free tier for Background Workers or Cron Jobs at all).
 # - SELLER_STRICT_VERIFICATION_FROM (2027-01-01), PLATFORM_COMMISSION_RATE
 #   (0.10 placeholder) -- see SPEC.md 6b, still needs a real business
 #   decision before launch.
@@ -112,7 +115,7 @@ services:
   - type: worker
     name: nornetorg-worker
     runtime: python
-    plan: free
+    plan: starter # Render's free tier doesn't support Background Workers, same as Cron Jobs above
     buildCommand: "pip install -r requirements.txt"
     startCommand: "celery -A celery_app worker --loglevel=info"
     envVars:
