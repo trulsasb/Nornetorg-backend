@@ -3,6 +3,7 @@ import logging
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
+from routers.admin_sellers import router as admin_sellers_router
 from routers.auth import router as auth_router
 from routers.catalog import router as catalog_router
 from routers.categories import router as categories_router
@@ -64,6 +65,7 @@ app.include_router(vipps_webhook_router)
 app.include_router(seller_profile_router)
 app.include_router(shipping_labels_router)
 app.include_router(commission_router)
+app.include_router(admin_sellers_router)
 
 # ---------------------------------------------------------
 # ROOT
