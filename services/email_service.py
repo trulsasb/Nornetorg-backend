@@ -23,6 +23,24 @@ def build_verification_email(store_name: str, verification_url: str) -> tuple[st
     return subject, body
 
 
+def build_commission_draw_failed_email(
+    store_name: str, amount: float, attempt: int, max_attempts: int, will_suspend: bool
+) -> tuple[str, str]:
+    subject = f"Provisjonstrekk feilet for {store_name} ({attempt}/{max_attempts})"
+    body = (
+        f"Vi klarte ikke å trekke {amount:.2f} kr i utestående provisjon fra betalingsmetoden registrert for "
+        f"{store_name}.\n\nDette var forsøk {attempt} av {max_attempts}."
+    )
+    if will_suspend:
+        body += (
+            "\n\nSiden dette var det siste forsøket, er Vipps nå midlertidig deaktivert som betalingsmetode for "
+            "butikken din inntil utestående beløp er gjort opp. Stripe-salg er ikke påvirket."
+        )
+    else:
+        body += "\n\nVi prøver igjen automatisk. Sørg for at betalingsmetoden er gyldig for å unngå avbrudd."
+    return subject, body
+
+
 def build_invitation_email(seller_store_name: str, accept_url: str) -> tuple[str, str]:
     subject = f"Du er invitert til å bli ansatt hos {seller_store_name} på NorneTorg"
     body = (

@@ -7,6 +7,7 @@ from routers.auth import router as auth_router
 from routers.catalog import router as catalog_router
 from routers.categories import router as categories_router
 from routers.checkout import router as checkout_router
+from routers.commission import router as commission_router
 from routers.products import router as products_router
 from routers.seller_payments import router as seller_payments_router
 from routers.seller_profile import router as seller_profile_router
@@ -62,6 +63,7 @@ app.include_router(vipps_payment_router)
 app.include_router(vipps_webhook_router)
 app.include_router(seller_profile_router)
 app.include_router(shipping_labels_router)
+app.include_router(commission_router)
 
 # ---------------------------------------------------------
 # ROOT

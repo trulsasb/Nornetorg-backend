@@ -38,6 +38,11 @@ class Settings(BaseSettings):
     # forretningsbeslutning -- eksakt sats må avklares før lansering.
     PLATFORM_COMMISSION_RATE: float = 0.10
 
+    # Dunning-policy for mislykket Vipps-provisjonstrekk -- se SPEC.md 3.1,
+    # avklart 2026-08-24: retry + varsling, deretter midlertidig
+    # Vipps-deaktivering for selgeren etter dette antallet mislykkede forsøk.
+    DUNNING_MAX_RETRIES: int = 3
+
     # Sikkerhet
     JWT_SECRET: str = "supersecret"
     JWT_EXPIRE_HOURS: int = 24

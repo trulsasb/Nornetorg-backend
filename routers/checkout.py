@@ -116,6 +116,18 @@ def checkout(payload: CheckoutRequest, db: Session = Depends(get_db)):
                 status_code=400,
                 detail=f"Følgende selger(e) kan ikke motta Vipps-betaling akkurat nå: {', '.join(suspended)}",
             )
+        # Vipps commission is never collected in the transaction itself
+        # (Modul 8/10) -- a seller must have a way to actually PAY it before
+        # they're allowed to accept Vipps money at all, or the debt could
+        # start accumulating with no collection mechanism in place yet.
+        no_payment_method = [
+            s.store_name for s in involved_sellers.values() if not s.commission_payment_method_id
+        ]
+        if no_payment_method:
+            raise HTTPException(
+                status_code=400,
+                detail=f"Følgende selger(e) har ikke satt opp betalingsmetode for provisjon: {', '.join(no_payment_method)}",
+            )
 
     total_amount = sum(products[item.product_id].price * item.quantity for item in payload.items)
 
