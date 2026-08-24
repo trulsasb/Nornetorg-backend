@@ -6,9 +6,6 @@
 # supports a Blueprint pulling some services from a different repo than the
 # one it's defined in.
 #
-# ACTION NEEDED: replace FRONTEND_REPO_URL_PLACEHOLDER below with the real
-# https://github.com/<you>/Nornetorg-frontend(.git) URL before deploying.
-#
 # Usage: in Render, New -> Blueprint -> pick this (Nornetorg-backend) repo.
 # Render reads this file and proposes all services below in one go. Values
 # marked "sync: false" are secrets Render will prompt you to fill in by
@@ -89,7 +86,7 @@ services:
   - type: web
     name: nornetorg-frontend
     runtime: node
-    repo: FRONTEND_REPO_URL_PLACEHOLDER # e.g. https://github.com/<you>/Nornetorg-frontend
+    repo: https://github.com/trulsasb/Nornetorg-frontend
     plan: free
     buildCommand: "npm install && npm run build"
     startCommand: "npx next start -p $PORT"
