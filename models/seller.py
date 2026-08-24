@@ -23,6 +23,13 @@ class Seller(Base):
     email_verified_at = Column(DateTime, nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow)
 
+    # Returadresse -- påkrevd for å faktisk kunne kjøpe porto/etikett hos
+    # Bring (Modul 9). Nullable siden den ikke finnes ved registrering;
+    # settes via PUT /sellers/profile før første etikettkjøp.
+    business_address = Column(String, nullable=True)
+    business_zip = Column(String, nullable=True)
+    business_city = Column(String, nullable=True)
+
     # Stripe Connect (Express) -- for RECEIVING payment splits. See SPEC.md 3.4.
     stripe_account_id = Column(String, nullable=True)
     stripe_onboarding_complete = Column(Boolean, nullable=False, default=False)

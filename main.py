@@ -9,7 +9,9 @@ from routers.categories import router as categories_router
 from routers.checkout import router as checkout_router
 from routers.products import router as products_router
 from routers.seller_payments import router as seller_payments_router
+from routers.seller_profile import router as seller_profile_router
 from routers.sellers import router as sellers_router
+from routers.shipping_labels import router as shipping_labels_router
 from routers.shipping_brackets import router as shipping_brackets_router
 from routers.stripe_connect_webhook import router as stripe_connect_webhook_router
 from routers.stripe_payment import router as stripe_payment_router
@@ -58,6 +60,8 @@ app.include_router(stripe_payment_router)
 app.include_router(stripe_webhook_router)
 app.include_router(vipps_payment_router)
 app.include_router(vipps_webhook_router)
+app.include_router(seller_profile_router)
+app.include_router(shipping_labels_router)
 
 # ---------------------------------------------------------
 # ROOT
