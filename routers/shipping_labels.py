@@ -35,6 +35,45 @@ def _label_public(label: ShippingLabel) -> dict:
     }
 
 
+def _suborder_public(suborder: SellerSubOrder) -> dict:
+    cart_order = suborder.cart_order
+    return {
+        "id": suborder.id,
+        "cart_order_id": suborder.cart_order_id,
+        "status": suborder.status.value,
+        "subtotal_amount": suborder.subtotal_amount,
+        "customer_name": cart_order.customer_name,
+        "customer_email": cart_order.customer_email,
+        "shipping_address": cart_order.shipping_address,
+        "shipping_zip": cart_order.shipping_zip,
+        "shipping_city": cart_order.shipping_city,
+        "created_at": suborder.created_at,
+        "item_count": len(suborder.items),
+        "has_shipping_label": suborder.shipping_label is not None,
+    }
+
+
+@router.get("/")
+def list_own_orders(current_user: User = Depends(get_current_seller_user), db: Session = Depends(get_db)):
+    # Any staff member can VIEW own store's orders -- same "view isn't
+    # gated, only mutating actions are" pattern as products (Modul 4).
+    suborders = (
+        db.query(SellerSubOrder)
+        .filter(SellerSubOrder.seller_id == current_user.seller_id)
+        .order_by(SellerSubOrder.created_at.desc())
+        .all()
+    )
+    return [_suborder_public(s) for s in suborders]
+
+
+@router.get("/{seller_suborder_id}")
+def get_own_order(
+    seller_suborder_id: int, current_user: User = Depends(get_current_seller_user), db: Session = Depends(get_db)
+):
+    suborder = _get_own_suborder(seller_suborder_id, current_user, db)
+    return _suborder_public(suborder)
+
+
 @router.get("/{seller_suborder_id}/shipping-label")
 def get_shipping_label(
     seller_suborder_id: int, current_user: User = Depends(get_current_seller_user), db: Session = Depends(get_db)
