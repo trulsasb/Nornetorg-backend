@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from sqlalchemy import Boolean, Column, DateTime, Float, ForeignKey, Integer, JSON, String
+from sqlalchemy import Boolean, Column, DateTime, Float, ForeignKey, Integer, JSON, String, UniqueConstraint
 from sqlalchemy.orm import relationship
 
 from models.base import Base
@@ -8,6 +8,12 @@ from models.base import Base
 
 class Product(Base):
     __tablename__ = "products"
+    __table_args__ = (
+        # Slug er unikt PER SELGER, ikke globalt -- to selgere kan begge ha
+        # et produkt som heter "t-skjorte". Offentlig URL scopes uansett
+        # med butikkens slug (se Modul 5).
+        UniqueConstraint("seller_id", "slug", name="uq_product_seller_slug"),
+    )
 
     id = Column(Integer, primary_key=True, index=True)
     seller_id = Column(Integer, ForeignKey("sellers.id"), nullable=False, index=True)

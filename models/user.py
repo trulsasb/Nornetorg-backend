@@ -26,6 +26,7 @@ class User(Base):
     can_manage_sellers = Column(Boolean, nullable=False, default=False)
     can_view_transactions = Column(Boolean, nullable=False, default=False)
     can_manage_shipping_brackets = Column(Boolean, nullable=False, default=False)
+    can_manage_categories = Column(Boolean, nullable=False, default=False)
 
     # Seller-side staff membership. NULL seller_id = not a seller-side user.
     seller_id = Column(Integer, ForeignKey("sellers.id"), nullable=True)

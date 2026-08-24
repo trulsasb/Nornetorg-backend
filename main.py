@@ -4,8 +4,11 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from routers.auth import router as auth_router
+from routers.categories import router as categories_router
+from routers.products import router as products_router
 from routers.seller_payments import router as seller_payments_router
 from routers.sellers import router as sellers_router
+from routers.shipping_brackets import router as shipping_brackets_router
 from routers.stripe_connect_webhook import router as stripe_connect_webhook_router
 from utils.env import settings
 
@@ -40,6 +43,9 @@ app.include_router(auth_router)
 app.include_router(sellers_router)
 app.include_router(seller_payments_router)
 app.include_router(stripe_connect_webhook_router)
+app.include_router(categories_router)
+app.include_router(shipping_brackets_router)
+app.include_router(products_router)
 
 # ---------------------------------------------------------
 # ROOT

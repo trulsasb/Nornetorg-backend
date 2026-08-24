@@ -13,6 +13,7 @@ from models.seller import Seller, SellerStatus
 from models.user import User
 from services.email_service import EmailService, build_verification_email
 from utils.env import settings
+from utils.slugify import slugify
 from utils.tokens import hash_invitation_token
 
 router = APIRouter(prefix="/auth", tags=["Auth"])
@@ -149,10 +150,6 @@ class AcceptInvitationRequest(BaseModel):
 # ---------------------------------------------------------
 
 
-def _slugify(store_name: str) -> str:
-    return "-".join(store_name.strip().lower().split()) or "butikk"
-
-
 def _email_only_registration_still_allowed() -> bool:
     """See SPEC.md 3.3 punkt 2. SELLER_STRICT_VERIFICATION_FROM (an explicit
     fixed date) takes precedence when set; otherwise falls back to
@@ -186,7 +183,7 @@ async def register_seller(
     if existing:
         raise HTTPException(status_code=400, detail="E-postadressen er allerede registrert")
 
-    base_slug = _slugify(payload.store_name)
+    base_slug = slugify(payload.store_name)
     slug = base_slug
     suffix = 1
     while db.query(Seller).filter(Seller.slug == slug).first():
