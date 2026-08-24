@@ -1,7 +1,13 @@
+import logging
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
+from routers.auth import router as auth_router
+from routers.sellers import router as sellers_router
 from utils.env import settings
+
+logging.basicConfig(level=logging.INFO, format="%(levelname)s [%(name)s] %(message)s")
 
 app = FastAPI(title="NorneTorg Backend")
 
@@ -24,10 +30,12 @@ app.add_middleware(
 # ---------------------------------------------------------
 # ROUTERS
 # ---------------------------------------------------------
-# Ingen rutere ennå -- Modul 2 (bruker-/selgerautentisering) legger til de
-# første. Databasetabeller opprettes via Alembic (`alembic upgrade head`),
-# ikke ved oppstart -- se alembic/ og lessons-learned-notatet i SPEC.md
-# om Vitalityboost sin schema-drift-hendelse.
+# Databasetabeller opprettes via Alembic (`alembic upgrade head`), ikke ved
+# oppstart -- se alembic/ og lessons-learned-notatet i SPEC.md om
+# Vitalityboost sin schema-drift-hendelse.
+
+app.include_router(auth_router)
+app.include_router(sellers_router)
 
 # ---------------------------------------------------------
 # ROOT

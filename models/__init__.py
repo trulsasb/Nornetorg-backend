@@ -1,6 +1,7 @@
 from models.base import Base
 from models.user import User
 from models.seller import Seller, SellerStatus
+from models.invitation import StaffInvitation
 from models.category import Category
 from models.shipping import ShippingBracket, ShippingLabel
 from models.product import Product, ProductImage
@@ -13,6 +14,7 @@ __all__ = [
     "User",
     "Seller",
     "SellerStatus",
+    "StaffInvitation",
     "Category",
     "ShippingBracket",
     "ShippingLabel",
