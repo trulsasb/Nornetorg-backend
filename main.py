@@ -14,6 +14,8 @@ from routers.shipping_brackets import router as shipping_brackets_router
 from routers.stripe_connect_webhook import router as stripe_connect_webhook_router
 from routers.stripe_payment import router as stripe_payment_router
 from routers.stripe_webhook import router as stripe_webhook_router
+from routers.vipps_payment import router as vipps_payment_router
+from routers.vipps_webhook import router as vipps_webhook_router
 from utils.env import settings
 
 logging.basicConfig(level=logging.INFO, format="%(levelname)s [%(name)s] %(message)s")
@@ -54,6 +56,8 @@ app.include_router(catalog_router)
 app.include_router(checkout_router)
 app.include_router(stripe_payment_router)
 app.include_router(stripe_webhook_router)
+app.include_router(vipps_payment_router)
+app.include_router(vipps_webhook_router)
 
 # ---------------------------------------------------------
 # ROOT

@@ -25,7 +25,11 @@ def initiate_stripe_payment(cart_order_id: int, db: Session = Depends(get_db)):
     if cart_order.status != CartOrderStatus.PENDING_PAYMENT:
         raise HTTPException(status_code=409, detail="Ordren venter ikke lenger på betaling")
 
-    status_token = secrets.token_urlsafe(24)
+    # Reuse an already-issued token rather than regenerating -- for a Vipps
+    # cart (Modul 8) the same CartOrder gets multiple initiate calls (one
+    # per seller), and a customer holding the token from the first call
+    # must not have it silently invalidated by a later one.
+    status_token = cart_order.status_token or secrets.token_urlsafe(24)
     cart_order.status_token = status_token
 
     try:

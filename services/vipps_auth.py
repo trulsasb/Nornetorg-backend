@@ -36,3 +36,11 @@ class VippsAuth:
         if not token:
             raise VippsAuthError("Vipps svarte uten en gyldig access token")
         return token
+
+    def get_headers(self) -> dict:
+        access_token = self.fetch_access_token()
+        return {
+            "Authorization": f"Bearer {access_token}",
+            "Ocp-Apim-Subscription-Key": self.subscription_key,
+            "client_id": self.client_id,
+        }

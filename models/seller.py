@@ -33,6 +33,10 @@ class Seller(Base):
     vipps_client_secret_encrypted = Column(String, nullable=True)
     vipps_subscription_key_encrypted = Column(String, nullable=True)
     vipps_msn_encrypted = Column(String, nullable=True)
+    # Returned when the seller registers a webhook via Vipps' POST /webhooks
+    # -- each seller has their OWN Vipps agreement, so each needs their own
+    # webhook secret, unlike Vitalityboost's single platform-wide one.
+    vipps_webhook_secret_encrypted = Column(String, nullable=True)
     vipps_onboarding_complete = Column(Boolean, nullable=False, default=False)
 
     # Midlertidig deaktivering av Vipps ved vedvarende mislykket provisjonstrekk

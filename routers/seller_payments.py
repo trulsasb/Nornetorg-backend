@@ -88,6 +88,10 @@ class ConnectVippsRequest(BaseModel):
     client_secret: str
     subscription_key: str
     msn: str
+    # Returned by Vipps when the seller registers a webhook via their own
+    # POST /webhooks call -- see Modul 8 (vipps_webhook.py) for why this is
+    # per-seller rather than a shared platform secret.
+    webhook_secret: str
 
 
 @router.post("/vipps/connect", dependencies=_can_manage_payments)
@@ -110,6 +114,7 @@ def connect_vipps(
     seller.vipps_client_secret_encrypted = encrypt_value(payload.client_secret)
     seller.vipps_subscription_key_encrypted = encrypt_value(payload.subscription_key)
     seller.vipps_msn_encrypted = encrypt_value(payload.msn)
+    seller.vipps_webhook_secret_encrypted = encrypt_value(payload.webhook_secret)
     seller.vipps_onboarding_complete = True
     # Deliberately NOT touching vipps_suspended_for_unpaid_commission here --
     # that flag is only cleared by actually settling owed commission
@@ -138,6 +143,7 @@ def disconnect_vipps(
     seller.vipps_client_secret_encrypted = None
     seller.vipps_subscription_key_encrypted = None
     seller.vipps_msn_encrypted = None
+    seller.vipps_webhook_secret_encrypted = None
     seller.vipps_onboarding_complete = False
     db.commit()
     return {"connected": False}
