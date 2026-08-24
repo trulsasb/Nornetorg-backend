@@ -6,6 +6,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from routers.auth import router as auth_router
 from routers.catalog import router as catalog_router
 from routers.categories import router as categories_router
+from routers.checkout import router as checkout_router
 from routers.products import router as products_router
 from routers.seller_payments import router as seller_payments_router
 from routers.sellers import router as sellers_router
@@ -48,6 +49,7 @@ app.include_router(categories_router)
 app.include_router(shipping_brackets_router)
 app.include_router(products_router)
 app.include_router(catalog_router)
+app.include_router(checkout_router)
 
 # ---------------------------------------------------------
 # ROOT
