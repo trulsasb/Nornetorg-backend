@@ -1,6 +1,7 @@
 # utils/env.py
 from datetime import date
 
+from pydantic import field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -10,6 +11,18 @@ class Settings(BaseSettings):
 
     # Database
     DATABASE_URL: str = "postgresql://postgres:postgres@localhost:5432/nornetorg"
+
+    @field_validator("DATABASE_URL")
+    @classmethod
+    def _normalize_postgres_scheme(cls, v: str) -> str:
+        # Render (and formerly Heroku) hand out managed Postgres connection
+        # strings using the old "postgres://" scheme, which SQLAlchemy 1.4+
+        # rejects -- it requires "postgresql://". Normalized once here, the
+        # single source of truth both database.py and alembic/env.py read
+        # from, instead of patching it in two places.
+        if v.startswith("postgres://"):
+            return "postgresql://" + v[len("postgres://"):]
+        return v
 
     # Bakgrunnsjobber
     REDIS_URL: str = "redis://localhost:6379/0"
