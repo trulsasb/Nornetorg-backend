@@ -154,14 +154,15 @@ def _slugify(store_name: str) -> str:
 
 
 def _email_only_registration_still_allowed() -> bool:
-    """See SPEC.md 3.3 punkt 2. Dormant until LAUNCH_DATE is actually set --
-    protects against the grace period silently expiring while the app is
-    just sitting in development, and against the BankID module (a separate,
-    not-yet-built future module) needing to exist before this can ever
-    return False in a real deployment."""
-    if settings.LAUNCH_DATE is None:
-        return True
-    cutoff = settings.LAUNCH_DATE + timedelta(days=settings.SELLER_EMAIL_ONLY_GRACE_DAYS)
+    """See SPEC.md 3.3 punkt 2. SELLER_STRICT_VERIFICATION_FROM (an explicit
+    fixed date) takes precedence when set; otherwise falls back to
+    LAUNCH_DATE + SELLER_EMAIL_ONLY_GRACE_DAYS, which stays dormant (always
+    allowed) until a real launch date is set."""
+    cutoff = settings.SELLER_STRICT_VERIFICATION_FROM
+    if cutoff is None:
+        if settings.LAUNCH_DATE is None:
+            return True
+        cutoff = settings.LAUNCH_DATE + timedelta(days=settings.SELLER_EMAIL_ONLY_GRACE_DAYS)
     return datetime.utcnow().date() < cutoff
 
 

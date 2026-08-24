@@ -18,11 +18,18 @@ class Settings(BaseSettings):
     FRONTEND_URL: str = "https://nornetorg.no"
 
     # Selgerverifisering -- se SPEC.md 3.3 punkt 2. E-postverifisering alene
-    # er kun tillatt i SELLER_EMAIL_ONLY_GRACE_DAYS dager etter LAUNCH_DATE;
-    # deretter kreves BankID (egen fremtidig modul -- ikke bygget ennå).
-    # LAUNCH_DATE er bevisst None inntil en reell lanseringsdato er satt --
-    # fristen håndheves ikke mens dette er None, uansett hvor lenge appen
-    # har kjørt i test/utvikling.
+    # er kun tillatt frem til SELLER_STRICT_VERIFICATION_FROM; deretter
+    # kreves BankID (egen fremtidig modul -- ikke bygget ennå).
+    #
+    # SELLER_STRICT_VERIFICATION_FROM satt direkte = eksplisitt, fast frist
+    # (det Truls ba om 2026-08-24: 1. januar 2027). Har forrang når satt.
+    #
+    # LAUNCH_DATE + SELLER_EMAIL_ONLY_GRACE_DAYS er et alternativt,
+    # lanseringsrelativt uttrykk for fristen (brukes kun hvis
+    # SELLER_STRICT_VERIFICATION_FROM er None) -- nyttig senere hvis
+    # lanseringsdatoen flytter seg og fristen skal flytte seg med den,
+    # i stedet for å måtte oppdatere en fast dato manuelt.
+    SELLER_STRICT_VERIFICATION_FROM: date | None = date(2027, 1, 1)
     LAUNCH_DATE: date | None = None
     SELLER_EMAIL_ONLY_GRACE_DAYS: int = 60
 
