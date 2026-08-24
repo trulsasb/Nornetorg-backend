@@ -97,6 +97,24 @@ def checkout(payload: CheckoutRequest, db: Session = Depends(get_db)):
             detail="Vipps kan ikke brukes når handlekurven inneholder produkter fra flere selgere. Bruk Stripe, eller del opp kjøpet.",
         )
 
+    # Every seller in the cart must actually be able to RECEIVE money via
+    # the chosen provider -- a cart could otherwise be paid for and land on
+    # a seller who never finished onboarding, with no way to pay them out.
+    involved_sellers = {sid: products[items[0].product_id].seller for sid, items in items_by_seller.items()}
+    if payload.payment_provider == "stripe":
+        not_ready = [s.store_name for s in involved_sellers.values() if not s.stripe_onboarding_complete]
+        if not_ready:
+            raise HTTPException(
+                status_code=400,
+                detail=f"Følgende selger(e) har ikke fullført Stripe-tilkobling ennå: {', '.join(not_ready)}",
+            )
+    else:  # vipps -- exactly one seller at this point, per the check above
+        seller = next(iter(involved_sellers.values()))
+        if not seller.vipps_onboarding_complete:
+            raise HTTPException(status_code=400, detail=f"{seller.store_name} har ikke koblet til Vipps ennå")
+        if seller.vipps_suspended_for_unpaid_commission:
+            raise HTTPException(status_code=400, detail=f"{seller.store_name} kan ikke motta Vipps-betaling akkurat nå")
+
     total_amount = sum(products[item.product_id].price * item.quantity for item in payload.items)
 
     cart_order = CartOrder(

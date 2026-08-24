@@ -33,6 +33,11 @@ class Settings(BaseSettings):
     LAUNCH_DATE: date | None = None
     SELLER_EMAIL_ONLY_GRACE_DAYS: int = 60
 
+    # Provisjon -- fast prosentandel for alle selgere/bransjer, se SPEC.md
+    # 3.3 punkt 1. MERK: 0.10 (10%) er en PLASSHOLDER, ikke en fastsatt
+    # forretningsbeslutning -- eksakt sats må avklares før lansering.
+    PLATFORM_COMMISSION_RATE: float = 0.10
+
     # Sikkerhet
     JWT_SECRET: str = "supersecret"
     JWT_EXPIRE_HOURS: int = 24

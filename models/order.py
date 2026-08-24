@@ -44,6 +44,12 @@ class CartOrder(Base):
     # "vipps": kunden betaler én delbetaling per selger, se SellerSubOrder.
     payment_provider = Column(String, nullable=False)
 
+    # Opakt token utstedt ved betalingsinitiering, kreves for å sjekke
+    # ordrestatus -- samme mønster som lukket enumereringssårbarheten i
+    # Vitalityboost sitt betalingsstatus-endepunkt. CartOrder.id alene er
+    # en sekvensiell int og aldri nok til å lese status.
+    status_token = Column(String, nullable=True, index=True)
+
     total_amount = Column(Float, nullable=False, default=0)
     created_at = Column(DateTime, default=datetime.utcnow)
 
