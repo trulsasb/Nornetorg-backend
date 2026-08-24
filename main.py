@@ -4,7 +4,9 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from routers.auth import router as auth_router
+from routers.seller_payments import router as seller_payments_router
 from routers.sellers import router as sellers_router
+from routers.stripe_connect_webhook import router as stripe_connect_webhook_router
 from utils.env import settings
 
 logging.basicConfig(level=logging.INFO, format="%(levelname)s [%(name)s] %(message)s")
@@ -36,6 +38,8 @@ app.add_middleware(
 
 app.include_router(auth_router)
 app.include_router(sellers_router)
+app.include_router(seller_payments_router)
+app.include_router(stripe_connect_webhook_router)
 
 # ---------------------------------------------------------
 # ROOT

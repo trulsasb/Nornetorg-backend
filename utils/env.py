@@ -48,6 +48,9 @@ class Settings(BaseSettings):
     STRIPE_SECRET_KEY: str | None = None
     STRIPE_WEBHOOK_SECRET: str | None = None
     STRIPE_CONNECT_CLIENT_ID: str | None = None
+    # Stripe issues a DIFFERENT signing secret for the Connect-events webhook
+    # endpoint than for the main account's webhook -- see routers/stripe_connect_webhook.py.
+    STRIPE_CONNECT_WEBHOOK_SECRET: str | None = None
 
     # Vipps -- plattform-nivå defaults (selgere kobler opp sine egne,
     # lagret kryptert i databasen -- se models/seller.py)

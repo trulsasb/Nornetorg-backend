@@ -40,8 +40,11 @@ class Seller(Base):
     vipps_suspended_for_unpaid_commission = Column(Boolean, nullable=False, default=False)
 
     # Plattformens EGEN Stripe-integrasjon for å TREKKE provisjon fra selgeren
-    # -- se models/commission.py og SellerPaymentMethod. Adskilt fra
-    # stripe_account_id over, som er for utbetaling TIL selgeren.
+    # -- se models/commission.py. Adskilt fra stripe_account_id over, som er
+    # selgerens EGEN Connect-konto for å MOTTA utbetaling. commission_stripe_customer_id
+    # er en Stripe Customer på plattformens hovedkonto; commission_payment_method_id
+    # er kortet/betalingsmetoden festet til den kunden.
+    commission_stripe_customer_id = Column(String, nullable=True)
     commission_payment_method_id = Column(String, nullable=True)
 
     staff = relationship("User", back_populates="seller", foreign_keys="User.seller_id")
