@@ -153,10 +153,31 @@ def _slugify(store_name: str) -> str:
     return "-".join(store_name.strip().lower().split()) or "butikk"
 
 
+def _email_only_registration_still_allowed() -> bool:
+    """See SPEC.md 3.3 punkt 2. Dormant until LAUNCH_DATE is actually set --
+    protects against the grace period silently expiring while the app is
+    just sitting in development, and against the BankID module (a separate,
+    not-yet-built future module) needing to exist before this can ever
+    return False in a real deployment."""
+    if settings.LAUNCH_DATE is None:
+        return True
+    cutoff = settings.LAUNCH_DATE + timedelta(days=settings.SELLER_EMAIL_ONLY_GRACE_DAYS)
+    return datetime.utcnow().date() < cutoff
+
+
 @router.post("/register-seller", status_code=201)
 async def register_seller(
     payload: RegisterSellerRequest, background_tasks: BackgroundTasks, db: Session = Depends(get_db)
 ):
+    if not _email_only_registration_still_allowed():
+        # BankID-registrering (egen fremtidig modul) er ikke bygget ennå --
+        # se SPEC.md 3.3 punkt 2. Blokkerer heller enn å la useriøse selgere
+        # fortsette å registrere seg med bare e-post etter fristen.
+        raise HTTPException(
+            status_code=503,
+            detail="Registrering med kun e-post er ikke lenger tilgjengelig. BankID-verifisering kreves.",
+        )
+
     if len(payload.password) < 8:
         raise HTTPException(status_code=400, detail="Passordet må være minst 8 tegn")
 

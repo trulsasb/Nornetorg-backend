@@ -1,4 +1,6 @@
 # utils/env.py
+from datetime import date
+
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -14,6 +16,15 @@ class Settings(BaseSettings):
 
     # Frontend
     FRONTEND_URL: str = "https://nornetorg.no"
+
+    # Selgerverifisering -- se SPEC.md 3.3 punkt 2. E-postverifisering alene
+    # er kun tillatt i SELLER_EMAIL_ONLY_GRACE_DAYS dager etter LAUNCH_DATE;
+    # deretter kreves BankID (egen fremtidig modul -- ikke bygget ennå).
+    # LAUNCH_DATE er bevisst None inntil en reell lanseringsdato er satt --
+    # fristen håndheves ikke mens dette er None, uansett hvor lenge appen
+    # har kjørt i test/utvikling.
+    LAUNCH_DATE: date | None = None
+    SELLER_EMAIL_ONLY_GRACE_DAYS: int = 60
 
     # Sikkerhet
     JWT_SECRET: str = "supersecret"
