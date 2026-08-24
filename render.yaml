@@ -25,8 +25,12 @@
 #   configured (see tasks/commission.py's own docstring) -- if that
 #   changes, remove the duplicate trigger.
 #
-# Python version: pinned by runtime.txt in this repo (not duplicated here
-# as a PYTHON_VERSION env var -- one source of truth for it).
+# Python version: pinned via the PYTHON_VERSION env var on each Python
+# service below (also mirrored in runtime.txt for tools that read that
+# instead) -- without it, Render can default to a newer Python than
+# pydantic-core has a prebuilt wheel for, which then tries to compile
+# from source and fails with "metadata-generation-failed" (no Rust
+# toolchain in the build image). Hit exactly this on first deploy.
 
 databases:
   - name: nornetorg-db
@@ -47,6 +51,8 @@ services:
     startCommand: "uvicorn main:app --host 0.0.0.0 --port $PORT"
     healthCheckPath: /
     envVars:
+      - key: PYTHON_VERSION
+        value: "3.12.3"
       - key: APP_MODE
         value: live
       - key: DATABASE_URL
@@ -110,6 +116,8 @@ services:
     buildCommand: "pip install -r requirements.txt"
     startCommand: "celery -A celery_app worker --loglevel=info"
     envVars:
+      - key: PYTHON_VERSION
+        value: "3.12.3"
       - key: APP_MODE
         value: live
       - key: DATABASE_URL
@@ -142,6 +150,8 @@ services:
     buildCommand: "pip install -r requirements.txt"
     startCommand: "celery -A celery_app call tasks.run_commission_draws"
     envVars:
+      - key: PYTHON_VERSION
+        value: "3.12.3"
       - key: DATABASE_URL
         fromDatabase:
           name: nornetorg-db
