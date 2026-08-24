@@ -89,17 +89,13 @@ def checkout(payload: CheckoutRequest, db: Session = Depends(get_db)):
     for item in payload.items:
         items_by_seller[products[item.product_id].seller_id].append(item)
 
-    if payload.payment_provider == "vipps" and len(items_by_seller) > 1:
-        # See SPEC.md 3.1: Vipps has no multi-part split, so a cart spanning
-        # more than one seller can only be paid with Stripe.
-        raise HTTPException(
-            status_code=400,
-            detail="Vipps kan ikke brukes når handlekurven inneholder produkter fra flere selgere. Bruk Stripe, eller del opp kjøpet.",
-        )
-
     # Every seller in the cart must actually be able to RECEIVE money via
     # the chosen provider -- a cart could otherwise be paid for and land on
     # a seller who never finished onboarding, with no way to pay them out.
+    # NOTE: Vipps is NOT restricted to single-seller carts -- see SPEC.md 3.1.
+    # A multi-seller Vipps cart is split into one sub-payment per seller
+    # (Modul 8 builds the actual per-seller payment flow); this endpoint
+    # only needs to confirm every seller involved can receive Vipps at all.
     involved_sellers = {sid: products[items[0].product_id].seller for sid, items in items_by_seller.items()}
     if payload.payment_provider == "stripe":
         not_ready = [s.store_name for s in involved_sellers.values() if not s.stripe_onboarding_complete]
@@ -108,12 +104,18 @@ def checkout(payload: CheckoutRequest, db: Session = Depends(get_db)):
                 status_code=400,
                 detail=f"Følgende selger(e) har ikke fullført Stripe-tilkobling ennå: {', '.join(not_ready)}",
             )
-    else:  # vipps -- exactly one seller at this point, per the check above
-        seller = next(iter(involved_sellers.values()))
-        if not seller.vipps_onboarding_complete:
-            raise HTTPException(status_code=400, detail=f"{seller.store_name} har ikke koblet til Vipps ennå")
-        if seller.vipps_suspended_for_unpaid_commission:
-            raise HTTPException(status_code=400, detail=f"{seller.store_name} kan ikke motta Vipps-betaling akkurat nå")
+    else:  # vipps
+        not_ready = [s.store_name for s in involved_sellers.values() if not s.vipps_onboarding_complete]
+        if not_ready:
+            raise HTTPException(
+                status_code=400, detail=f"Følgende selger(e) har ikke koblet til Vipps ennå: {', '.join(not_ready)}"
+            )
+        suspended = [s.store_name for s in involved_sellers.values() if s.vipps_suspended_for_unpaid_commission]
+        if suspended:
+            raise HTTPException(
+                status_code=400,
+                detail=f"Følgende selger(e) kan ikke motta Vipps-betaling akkurat nå: {', '.join(suspended)}",
+            )
 
     total_amount = sum(products[item.product_id].price * item.quantity for item in payload.items)
 
