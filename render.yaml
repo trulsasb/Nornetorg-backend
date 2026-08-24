@@ -137,7 +137,7 @@ services:
   - type: cron
     name: nornetorg-commission-draw
     runtime: python
-    plan: free
+    plan: starter # Render has no free tier for Cron Jobs (unlike web/worker services)
     schedule: "0 6 * * *" # daily at 06:00 UTC -- adjust once real traffic volume is known
     buildCommand: "pip install -r requirements.txt"
     startCommand: "celery -A celery_app call tasks.run_commission_draws"
