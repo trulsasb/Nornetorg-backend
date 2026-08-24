@@ -1,0 +1,158 @@
+# Render Blueprint for NorneTorg -- see https://render.com/docs/blueprint-spec
+#
+# Backend and frontend live in two separate GitHub repos (Nornetorg-backend,
+# Nornetorg-frontend). This file lives in Nornetorg-backend; the frontend
+# service below points at the other repo via its own "repo:" key -- Render
+# supports a Blueprint pulling some services from a different repo than the
+# one it's defined in.
+#
+# ACTION NEEDED: replace FRONTEND_REPO_URL_PLACEHOLDER below with the real
+# https://github.com/<you>/Nornetorg-frontend(.git) URL before deploying.
+#
+# Usage: in Render, New -> Blueprint -> pick this (Nornetorg-backend) repo.
+# Render reads this file and proposes all services below in one go. Values
+# marked "sync: false" are secrets Render will prompt you to fill in by
+# hand (never committed here) -- see the comment on each.
+#
+# IMPORTANT before going live (not needed for an initial test deploy):
+# - "plan: free" services spin down after 15 min of inactivity and take
+#   10-30s to wake on the next request. That's fine for kicking the tires,
+#   but Stripe and Vipps both expect webhook responses within a few
+#   seconds and will mark deliveries failed (or retry oddly) against a
+#   cold-starting free instance. Bump nornetorg-backend and
+#   nornetorg-worker to at least "starter" before accepting real payments.
+# - SELLER_STRICT_VERIFICATION_FROM (2027-01-01), PLATFORM_COMMISSION_RATE
+#   (0.10 placeholder) -- see SPEC.md 6b, still needs a real business
+#   decision before launch.
+# - The commission draw cron below assumes Celery Beat is NOT otherwise
+#   configured (see tasks/commission.py's own docstring) -- if that
+#   changes, remove the duplicate trigger.
+#
+# Python version: pinned by runtime.txt in this repo (not duplicated here
+# as a PYTHON_VERSION env var -- one source of truth for it).
+
+databases:
+  - name: nornetorg-db
+    databaseName: nornetorg
+    plan: free
+
+services:
+  - type: redis
+    name: nornetorg-redis
+    plan: free
+    ipAllowList: [] # Render's own services reach it privately; no public access needed.
+
+  - type: web
+    name: nornetorg-backend
+    runtime: python
+    plan: free
+    buildCommand: "pip install -r requirements.txt && alembic upgrade head"
+    startCommand: "uvicorn main:app --host 0.0.0.0 --port $PORT"
+    healthCheckPath: /
+    envVars:
+      - key: APP_MODE
+        value: live
+      - key: DATABASE_URL
+        fromDatabase:
+          name: nornetorg-db
+          property: connectionString
+      - key: REDIS_URL
+        fromService:
+          type: redis
+          name: nornetorg-redis
+          property: connectionString
+      - key: FRONTEND_URL
+        sync: false # fill in after the frontend's first deploy, e.g. https://nornetorg-frontend.onrender.com (or the real domain once DNS is set up)
+      - key: JWT_SECRET
+        generateValue: true
+      - key: SETTINGS_ENCRYPTION_KEY
+        sync: false # generate with: python -c "from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())"
+      - key: PLATFORM_COMMISSION_RATE
+        value: "0.10" # placeholder -- see SPEC.md 6b
+      - key: DUNNING_MAX_RETRIES
+        value: "3"
+      - key: VIPPS_BASE_URL
+        value: "https://apitest.vipps.no" # switch to the production Vipps API host at real launch
+      - key: STRIPE_SECRET_KEY
+        sync: false
+      - key: STRIPE_WEBHOOK_SECRET
+        sync: false
+      - key: STRIPE_CONNECT_CLIENT_ID
+        sync: false
+      - key: STRIPE_CONNECT_WEBHOOK_SECRET
+        sync: false
+      - key: BRING_API_KEY
+        sync: false
+      - key: BRING_CUSTOMER_NUMBER
+        sync: false
+
+  - type: web
+    name: nornetorg-frontend
+    runtime: node
+    repo: FRONTEND_REPO_URL_PLACEHOLDER # e.g. https://github.com/<you>/Nornetorg-frontend
+    plan: free
+    buildCommand: "npm install && npm run build"
+    startCommand: "npx next start -p $PORT"
+    envVars:
+      - key: NODE_VERSION
+        value: "20"
+      - key: NEXT_PUBLIC_API_URL
+        fromService:
+          type: web
+          name: nornetorg-backend
+          property: host
+        # Render's "host" property has no https:// prefix and Next.js
+        # needs the full origin -- if the build/runtime errors on this,
+        # replace with sync:false and paste the full
+        # https://nornetorg-backend.onrender.com URL by hand instead.
+
+  - type: worker
+    name: nornetorg-worker
+    runtime: python
+    plan: free
+    buildCommand: "pip install -r requirements.txt"
+    startCommand: "celery -A celery_app worker --loglevel=info"
+    envVars:
+      - key: APP_MODE
+        value: live
+      - key: DATABASE_URL
+        fromDatabase:
+          name: nornetorg-db
+          property: connectionString
+      - key: REDIS_URL
+        fromService:
+          type: redis
+          name: nornetorg-redis
+          property: connectionString
+      - key: FRONTEND_URL
+        sync: false
+      - key: JWT_SECRET
+        sync: false # must be the SAME value as nornetorg-backend's JWT_SECRET -- copy it over after backend's first deploy generates it
+      - key: SETTINGS_ENCRYPTION_KEY
+        sync: false # must match nornetorg-backend's value exactly -- this key decrypts sellers' stored Vipps credentials
+      - key: PLATFORM_COMMISSION_RATE
+        value: "0.10"
+      - key: DUNNING_MAX_RETRIES
+        value: "3"
+      - key: STRIPE_SECRET_KEY
+        sync: false
+
+  - type: cron
+    name: nornetorg-commission-draw
+    runtime: python
+    plan: free
+    schedule: "0 6 * * *" # daily at 06:00 UTC -- adjust once real traffic volume is known
+    buildCommand: "pip install -r requirements.txt"
+    startCommand: "celery -A celery_app call tasks.run_commission_draws"
+    envVars:
+      - key: DATABASE_URL
+        fromDatabase:
+          name: nornetorg-db
+          property: connectionString
+      - key: REDIS_URL
+        fromService:
+          type: redis
+          name: nornetorg-redis
+          property: connectionString
+      - key: STRIPE_SECRET_KEY
+        sync: false
