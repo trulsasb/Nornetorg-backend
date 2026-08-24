@@ -58,8 +58,8 @@ def connect_stripe(
     try:
         account_link = stripe.AccountLink.create(
             account=seller.stripe_account_id,
-            refresh_url=f"{settings.FRONTEND_URL}/selger/betalinger/stripe/refresh",
-            return_url=f"{settings.FRONTEND_URL}/selger/betalinger/stripe/ferdig",
+            refresh_url=f"{settings.FRONTEND_URL}/dashboard/betalinger",
+            return_url=f"{settings.FRONTEND_URL}/dashboard/betalinger",
             type="account_onboarding",
         )
     except stripe.error.StripeError as e:

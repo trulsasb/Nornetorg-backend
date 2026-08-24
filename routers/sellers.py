@@ -86,7 +86,7 @@ async def invite_staff(
     db.commit()
     db.refresh(invitation)
 
-    accept_url = f"{settings.FRONTEND_URL}/selger/godta-invitasjon?token={raw_token}"
+    accept_url = f"{settings.FRONTEND_URL}/godta-invitasjon?token={raw_token}"
     subject, body = build_invitation_email(current_user.seller.store_name, accept_url)
     background_tasks.add_task(EmailService().send, payload.email, subject, body)
 

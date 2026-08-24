@@ -209,7 +209,7 @@ async def register_seller(
         {"seller_id": seller.id},
         timedelta(minutes=EMAIL_VERIFICATION_EXPIRE_MINUTES),
     )
-    verification_url = f"{settings.FRONTEND_URL}/selger/bekreft-epost?token={verification_token}"
+    verification_url = f"{settings.FRONTEND_URL}/bekreft-epost?token={verification_token}"
     subject, body = build_verification_email(seller.store_name, verification_url)
     background_tasks.add_task(EmailService().send, payload.email, subject, body)
 
